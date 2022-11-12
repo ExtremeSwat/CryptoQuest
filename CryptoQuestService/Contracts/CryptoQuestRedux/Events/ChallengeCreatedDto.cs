@@ -6,10 +6,10 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Events
     [Event("ChallengeCreated")]
     public class ChallengeCreatedDto : IEventDTO
     {
-        [Parameter("uint256", "challengeId", 1)]
+        [Parameter("uint256", "challengeId", 1, true)]
         public BigInteger ChallengeId { get; set; }
 
-        [Parameter("uint256", "createdBy", 2)]
+        [Parameter("address", "createdBy", 2, true)]
         public string CreatedBy { get; set; }
     }
 }

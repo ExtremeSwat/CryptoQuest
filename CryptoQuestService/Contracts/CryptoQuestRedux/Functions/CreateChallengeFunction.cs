@@ -20,7 +20,7 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Functions
         public BigInteger ToTimestamp{ get; set; }
 
         [Parameter("uint256", "mapSkinId", 5)]
-        public BigInteger mapSkinId { get; set; }
+        public BigInteger MapSkinId { get; set; }
 
         [Parameter("string", "imagePreviewURL", 6)]
         public string ImagePreviewURL { get; set; }
