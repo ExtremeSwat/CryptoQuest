@@ -19,6 +19,8 @@ namespace CryptoQuestService.Services
 
         public async Task DeployCryptoQuest()
         {
+            throw new NotImplementedException();
+
             var web3 = GetWeb3Account();
             var cryptoQuestDeploymentMessage = new CryptoQuestDeployment()
             {
@@ -33,7 +35,7 @@ namespace CryptoQuestService.Services
             _logger.LogInformation("Deployed contract at: {0}", contractAddress);
         }
 
-        private Web3 GetWeb3Account()
+        public Web3 GetWeb3Account()
         {
             var deployerSettings = _options.AccountSettings;
             var account = new Account(deployerSettings.PrivateKey, deployerSettings.ChainId);

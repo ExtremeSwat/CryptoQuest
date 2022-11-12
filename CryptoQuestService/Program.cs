@@ -17,7 +17,7 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetRequiredSection
 builder.Services.AddTransient<ContractDeployer>();
 
 // Hosted services
-builder.Services.AddHostedService<DeployerHostedService>();
+builder.Services.AddHostedService<CryptoQuestReduxInteractionService>();
 
 var app = builder.Build();
 
