@@ -20,7 +20,11 @@ namespace CryptoQuestService.Services
         public async Task DeployCryptoQuest()
         {
             var web3 = GetWeb3Account();
-            var cryptoQuestDeploymentMessage = new CryptoQuestDeployment();
+            var cryptoQuestDeploymentMessage = new CryptoQuestDeployment()
+            {
+                Registry = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+            };
+
             var deploymentHandler = web3.Eth.GetContractDeploymentHandler<CryptoQuestDeployment>();
 
             var transactionReceipt = await deploymentHandler.SendRequestAndWaitForReceiptAsync(cryptoQuestDeploymentMessage);
