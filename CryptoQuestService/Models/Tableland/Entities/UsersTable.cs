@@ -1,4 +1,4 @@
-﻿namespace CryptoQuestService.Models.Tableland
+﻿namespace CryptoQuestService.Models.Tableland.Entities
 {
     public class UsersTable
     {

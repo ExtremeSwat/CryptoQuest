@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace CryptoQuestService.Models.Tableland
+namespace CryptoQuestService.Models.Tableland.Entities
 {
     public class MapSkinsTable
     {
