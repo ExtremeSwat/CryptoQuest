@@ -8,5 +8,7 @@
         public string TablelandBaseUri { get; set; } = default!;
         public string ChainUri { get; set; } = default!;
         public string Registry { get; set; } = default!;
+        public int ChainId { get; set; } = default!;
+
     }
 }

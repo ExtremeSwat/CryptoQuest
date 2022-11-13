@@ -1,41 +1,38 @@
 ﻿using CryptoQuestService.Models.Settings;
+using CryptoQuestService.Models.Tableland.Chain;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace CryptoQuestService.Services.HttpClients
 {
-    public class TablelandService
+    internal class TablelandHttpService
     {
         private readonly HttpClient _httpClient;
-        private readonly ApiSettings _options;
 
-        private readonly Dictionary<CryptoQuestTables, string> _tableNames;
+        private readonly ChainSettings _chainSettings;
         private readonly string _cryptoQuestContractAddress;
 
-        enum CryptoQuestTables
+        internal TablelandHttpService(HttpClient httpClient, IOptions<ApiSettings> options, ILogger<TablelandHttpService>)
         {
-            Mapskins,
-            Users,
-            Challenges,
-            ChallengeCheckpoints,
-            ChallengeCheckpointTriggers,
-            Participants,
-            ParticipantsProgress
-        }
-
-        public TablelandService(HttpClient httpClient, IOptions<ApiSettings> options)
-        {
-            _options = options.Value;
-            var chainSettings = _options.ChainSettings;
-
-            _cryptoQuestContractAddress = _options.ContractSettings.CryptoQuestAddress;
+            _chainSettings = options.Value.ChainSettings;
+            _cryptoQuestContractAddress = options.Value.ContractSettings.CryptoQuestAddress;
 
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(chainSettings.TablelandBaseUri);
+            _httpClient.BaseAddress = new Uri(_chainSettings.TablelandBaseUri);
         }
 
-        public async Task GrabTableNames()
+        internal async Task<List<OwnedTable>> GrabCryptoQuestOwnedTables()
         {
+            var request = await _httpClient.GetAsync($"/chain/{_chainSettings.ChainId}/{_cryptoQuestContractAddress}");
+            request.EnsureSuccessStatusCode();
 
+            var stringContent = await request.Content.ReadAsStringAsync();
+            var ownedTables = JsonSerializer.Deserialize<List<OwnedTable>>(stringContent);
+
+            if (ownedTables is null)
+                throw new Exception("Invalid parsing !");
+
+            return ownedTables;
         }
     }
 }

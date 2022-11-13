@@ -38,8 +38,9 @@ namespace CryptoQuestService.Services
         public Web3 GetWeb3Account()
         {
             var deployerSettings = _options.AccountSettings;
-            var account = new Account(deployerSettings.PrivateKey, deployerSettings.ChainId);
+            var chainSettings = _options.ChainSettings;
 
+            var account = new Account(deployerSettings.PrivateKey, chainSettings.ChainId);
             return new Web3(account, _options.ChainSettings.ChainUri);
         }
     }
