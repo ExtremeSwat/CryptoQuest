@@ -1,4 +1,5 @@
-﻿using CryptoQuestService.Models.Tableland.Chain;
+﻿using CryptoQuestService.Models.Dtos.Input;
+using CryptoQuestService.Models.Tableland.Chain;
 using CryptoQuestService.Models.Tableland.Entities;
 using CryptoQuestService.Services.Caches;
 using CryptoQuestService.Services.HttpClients;
@@ -24,6 +25,15 @@ namespace CryptoQuestService.Services
 
         public async Task<ChallengesTable?> GrabChallengeById(int id)
             => await _tablelandHttpService.GrabChallengeById(id, GrabTableByName(CryptoQuestTables.Challenges).Name);
+
+        public async Task CreateChallengeCheckpoint(ChallengeCheckpointInputDto dto)
+        {
+            // We're only going to execute the query if the challenge actually exists lol
+            var challenge = await GrabChallengeById(dto.ChallengeId);
+            if (challenge is null)
+                throw new ArgumentException(nameof(dto.ChallengeId), "Invalid ChallengeId");
+
+        }
 
         private OwnedTable GrabTableByName(CryptoQuestTables tableName)
         {

@@ -1,5 +1,7 @@
-﻿using CryptoQuestService.Services;
+﻿using CryptoQuestService.Models.Dtos.Input;
+using CryptoQuestService.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace CryptoQuestService.Controllers
 {
@@ -56,6 +58,25 @@ namespace CryptoQuestService.Controllers
                 _logger.LogError(e, "Failure to grab challenge by id");
                 return BadRequest();
             }
+        }
+
+        [HttpPost("challenges/checkpoints")]
+        public async Task<IActionResult> CreateChallengeCheckpoint([FromBody, Required] ChallengeCheckpointInputDto challengeCheckpointDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                //_cryptoQuestService.GrabCurrentChallenges
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenge by id");
+                return BadRequest();
+            }
+
+            return Ok();
         }
     }
 }

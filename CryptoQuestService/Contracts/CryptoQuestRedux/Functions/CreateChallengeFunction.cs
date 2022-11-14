@@ -17,7 +17,7 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Functions
         public BigInteger FromTimestamp { get; set; }
 
         [Parameter("uint256", "toTimestamp", 4)]
-        public BigInteger ToTimestamp{ get; set; }
+        public BigInteger ToTimestamp { get; set; }
 
         [Parameter("uint256", "mapSkinId", 5)]
         public BigInteger MapSkinId { get; set; }

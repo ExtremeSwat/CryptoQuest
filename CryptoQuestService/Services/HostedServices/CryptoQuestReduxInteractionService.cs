@@ -1,10 +1,13 @@
 ﻿using CryptoQuestService.Contracts.CryptoQuestRedux.Events;
 using CryptoQuestService.Contracts.CryptoQuestRedux.Functions;
+using CryptoQuestService.Contracts.CryptoQuestRedux.Functions.Outputs;
+using CryptoQuestService.Models.Deployment.CryptoQuestRedux.Deployment;
 using CryptoQuestService.Models.Settings;
 using Microsoft.Extensions.Options;
 using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
+using System.Numerics;
 
 namespace CryptoQuestService.Services.HostedServices
 {
@@ -23,10 +26,11 @@ namespace CryptoQuestService.Services.HostedServices
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            return;
             var web3 = _contractDeployer.GetWeb3Account();
             // await EventListener(web3).ConfigureAwait(false);
+
             await SimulateChallengeCreation(web3).ConfigureAwait(false);
+            await SimulateChallengeCheckpointCreation(web3).ConfigureAwait(false);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -54,6 +58,44 @@ namespace CryptoQuestService.Services.HostedServices
 
             var transferEventOutput = receipt.DecodeAllEvents<ChallengeCreatedDto>();
         }
+
+        private async Task SimulateChallengeCheckpointCreation(Web3 web3)
+        {
+            var contract = web3.Eth.GetContractHandler(_apiSettings.ContractSettings.CryptoQuestReduxAddress);
+            var createCheckpointFunction = contract.GetFunction<CreateCheckpointFunction>();
+
+            var createCheckpoint = new CreateCheckpointFunction
+            {
+                ChallengeId = 0,
+                Order = BigInteger.Parse("4"),
+                Title = "Test Title",
+                IconUrl = "TestURL",
+                IconId = 1,
+                Lat = "69",
+                Lng = "69"
+            };
+
+            var data = await contract.QueryDeserializingToObjectAsync<CreateCheckpointFunction, CreateCheckpointOutput>(createCheckpoint);
+
+
+            /*
+            var createCheckpointFunction = web3.Eth.GetContractTransactionHandler<CreateCheckpointFunction>();
+            var createCheckpoint = new CreateCheckpointFunction
+            {
+                ChallengeId = 0,
+                Order = 1,
+                Title = "Test Title",
+                IconUrl = "TestURL",
+                Lat = "69",
+                Lng = "69"
+            };
+
+            var receipt = await createCheckpointFunction.SendRequestAndWaitForReceiptAsync(_apiSettings.ContractSettings.CryptoQuestReduxAddress, createCheckpoint);
+            if (!receipt.Succeeded())
+                throw new Exception("Tran failed");
+            */
+        }
+
 
         private async Task EventListener(Web3 web3)
         {
