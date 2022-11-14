@@ -10,6 +10,6 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Events
         public BigInteger ChallengeId { get; set; }
 
         [Parameter("address", "createdBy", 2, true)]
-        public string CreatedBy { get; set; }
+        public string CreatedBy { get; set; } = default!;
     }
 }

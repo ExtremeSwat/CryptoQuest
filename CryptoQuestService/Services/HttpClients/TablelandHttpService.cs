@@ -1,8 +1,8 @@
 ﻿using CryptoQuestService.Models.Settings;
 using CryptoQuestService.Models.Tableland.Chain;
+using CryptoQuestService.Models.Tableland.Entities;
 using CryptoQuestService.Services.Caches;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.Cmp;
 using System.Text.Json;
 
 namespace CryptoQuestService.Services.HttpClients
@@ -58,13 +58,13 @@ namespace CryptoQuestService.Services.HttpClients
         /// Returns a list of <see cref="Challenge"/>
         /// </summary>
         /// <returns></returns>
-        internal async Task<List<Challenge>?> GrabCurrentChallenges()
+        internal async Task<List<ChallengesTable>?> GrabCurrentChallenges()
         {
             var challengesTable = GrabTableByName(CryptoQuestTables.Challenges);
             var query = $"select * from {challengesTable.Name}";
 
             var content = await GrabDataFromRequestAsync(query);
-            return JsonSerializer.Deserialize<List<Challenge>>(content, _tablelandSerializerOptions);
+            return JsonSerializer.Deserialize<List<ChallengesTable>>(content, _tablelandSerializerOptions);
         }
 
         /// <summary>
@@ -72,13 +72,13 @@ namespace CryptoQuestService.Services.HttpClients
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        internal async Task<Challenge?> GrabChallengeById(int id)
+        internal async Task<ChallengesTable?> GrabChallengeById(int id)
         {
             var challengesTable = GrabTableByName(CryptoQuestTables.Challenges);
             var query = $"select * from {challengesTable.Name} where id={id}";
 
             var content = await GrabDataFromRequestAsync(query);
-            return JsonSerializer.Deserialize<Challenge>(content, _tablelandSerializerOptions);
+            return JsonSerializer.Deserialize<ChallengesTable>(content, _tablelandSerializerOptions);
         }
 
         private async Task<string> GrabDataFromRequestAsync(string query)

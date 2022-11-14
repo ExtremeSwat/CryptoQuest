@@ -1,14 +1,61 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CryptoQuestService.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoQuestService.Controllers
 {
     [ApiController, Route("api/[controller]")]
-    public class ChallengesController : ControllerBase
+    internal class ChallengesController : ControllerBase
     {
-        [HttpPost]
-        public async Task<IActionResult> CreateChallenge()
+        private readonly CryptoQuestOperationsService _cryptoQuestService;
+        private readonly ILogger<ChallengesController> _logger;
+
+        public ChallengesController(CryptoQuestOperationsService cryptoQuestService, ILogger<ChallengesController> logger)
         {
-            return Ok();
+            _cryptoQuestService = cryptoQuestService;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Returns all of <see cref="Challenges"/>
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> GrabAllChallenges()
+        {
+            try
+            {
+                var challenges = await _cryptoQuestService.GrabCurrentChallenges();
+                if(!challenges.Any())
+                    return NoContent();
+
+                return Ok(challenges);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenges");
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("challengeId:int:required")]
+        public async Task<IActionResult> GrabChallengeById(int challengeId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var challenges = await _cryptoQuestService.GrabCurrentChallenges();
+                if (!challenges.Any())
+                    return NoContent();
+
+                return Ok(challenges);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenges");
+                return BadRequest();
+            }
         }
     }
 }

@@ -18,6 +18,7 @@ builder.Services.Configure<ApiSettings>(builder.Configuration.GetRequiredSection
 // Custom services
 builder.Services.AddTransient<ContractDeployer>();
 builder.Services.AddTransient<TablelandEntitiesCacheService>();
+builder.Services.AddTransient<CryptoQuestOperationsService>();
 
 // Http Services
 builder.Services.AddHttpClient<TablelandHttpService>();

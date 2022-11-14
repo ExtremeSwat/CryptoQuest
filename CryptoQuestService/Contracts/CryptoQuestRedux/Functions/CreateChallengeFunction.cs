@@ -8,10 +8,10 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Functions
     public class CreateChallengeFunction : FunctionMessage
     {
         [Parameter("string", "title", 1)]
-        public string Title { get; set; }
+        public string Title { get; set; } = default!;
 
         [Parameter("string", "description", 2)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Parameter("uint256", "fromTimestamp", 3)]
         public BigInteger FromTimestamp { get; set; }
@@ -23,6 +23,6 @@ namespace CryptoQuestService.Contracts.CryptoQuestRedux.Functions
         public BigInteger MapSkinId { get; set; }
 
         [Parameter("string", "imagePreviewURL", 6)]
-        public string ImagePreviewURL { get; set; }
+        public string? ImagePreviewURL { get; set; }
     }
 }
