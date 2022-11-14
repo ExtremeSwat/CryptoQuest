@@ -19,9 +19,10 @@ namespace CryptoQuestService.Services.HostedServices
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            return;
             var web3 = _contractDeployer.GetWeb3Account();
-            //await EventListener(web3).ConfigureAwait(false);
-            await SimulateChallengeCreation(web3).ConfigureAwait(false);
+            // await EventListener(web3).ConfigureAwait(false);
+            // await SimulateChallengeCreation(web3).ConfigureAwait(false);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
