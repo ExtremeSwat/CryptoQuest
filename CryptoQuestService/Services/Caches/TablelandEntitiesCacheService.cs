@@ -4,7 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace CryptoQuestService.Services.Caches
 {
-    internal enum CryptoQuestTables
+    public enum CryptoQuestTables
     {
         Mapskins,
         Users,
@@ -15,7 +15,7 @@ namespace CryptoQuestService.Services.Caches
         ParticipantProgress
     }
 
-    internal class TablelandEntitiesCacheService
+    public class TablelandEntitiesCacheService
     {
         private readonly TablelandHttpService _tablelandHttpService;
         private readonly ILogger<TablelandEntitiesCacheService> _logger;
@@ -35,7 +35,7 @@ namespace CryptoQuestService.Services.Caches
         /// Initializes the db
         /// </summary>
         /// <returns></returns>
-        internal async Task InitializeTables()
+        public async Task InitializeTables()
         {
             _logger.LogInformation("Grabbing existing tables");
 
@@ -63,7 +63,7 @@ namespace CryptoQuestService.Services.Caches
             }
         }
 
-        internal Dictionary<CryptoQuestTables, OwnedTable> GrabCurrentTables()
+        public Dictionary<CryptoQuestTables, OwnedTable> GrabCurrentTables()
         {
             var tables = _memoryCache.Get<Dictionary<CryptoQuestTables, OwnedTable>>(nameof(CryptoQuestTables));
             if (!tables.Any())

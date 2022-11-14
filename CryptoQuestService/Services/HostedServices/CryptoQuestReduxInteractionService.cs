@@ -1,5 +1,7 @@
 ﻿using CryptoQuestService.Contracts.CryptoQuestRedux.Events;
 using CryptoQuestService.Contracts.CryptoQuestRedux.Functions;
+using CryptoQuestService.Models.Settings;
+using Microsoft.Extensions.Options;
 using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
@@ -10,11 +12,13 @@ namespace CryptoQuestService.Services.HostedServices
     {
         private readonly ContractDeployer _contractDeployer;
         private readonly ILogger<CryptoQuestReduxInteractionService> _logger;
+        private readonly ApiSettings _apiSettings;
 
-        public CryptoQuestReduxInteractionService(ContractDeployer contractDeployer, ILogger<CryptoQuestReduxInteractionService> logger)
+        public CryptoQuestReduxInteractionService(ContractDeployer contractDeployer, ILogger<CryptoQuestReduxInteractionService> logger, IOptions<ApiSettings> options)
         {
             _contractDeployer = contractDeployer;
             _logger = logger;
+            _apiSettings = options.Value;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -22,7 +26,7 @@ namespace CryptoQuestService.Services.HostedServices
             return;
             var web3 = _contractDeployer.GetWeb3Account();
             // await EventListener(web3).ConfigureAwait(false);
-            // await SimulateChallengeCreation(web3).ConfigureAwait(false);
+            await SimulateChallengeCreation(web3).ConfigureAwait(false);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -43,7 +47,7 @@ namespace CryptoQuestService.Services.HostedServices
                 ImagePreviewURL = "1"
             };
 
-            var receipt = await createChallengeFunction.SendRequestAndWaitForReceiptAsync("0x922D6956C99E12DFeB3224DEA977D0939758A1Fe", createChallenge);
+            var receipt = await createChallengeFunction.SendRequestAndWaitForReceiptAsync(_apiSettings.ContractSettings.CryptoQuestReduxAddress, createChallenge);
 
             if (!receipt.Succeeded())
                 throw new Exception("Tran failed");

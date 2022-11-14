@@ -2,29 +2,30 @@
 using CryptoQuestService.Models.Tableland.Chain;
 using CryptoQuestService.Models.Tableland.Entities;
 using CryptoQuestService.Services.Caches;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace CryptoQuestService.Services.HttpClients
 {
-    internal class TablelandHttpService
+    public class TablelandHttpService
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<TablelandHttpService> _logger;
-        private readonly TablelandEntitiesCacheService _tablelandEntitiesCacheService;
+        private readonly IMemoryCache _memoryCache;
         private readonly ChainSettings _chainSettings;
         private readonly string _cryptoQuestContractAddress;
 
         private readonly JsonSerializerOptions _tablelandSerializerOptions;
 
-        public TablelandHttpService(HttpClient httpClient, IOptions<ApiSettings> options, ILogger<TablelandHttpService> logger, TablelandEntitiesCacheService tablelandEntitiesCacheService)
+        public TablelandHttpService(HttpClient httpClient, IOptions<ApiSettings> options, ILogger<TablelandHttpService> logger, IMemoryCache memory)
         {
             _chainSettings = options.Value.ChainSettings;
             _cryptoQuestContractAddress = options.Value.ContractSettings.CryptoQuestAddress;
 
             _httpClient = httpClient;
             _logger = logger;
-            _tablelandEntitiesCacheService = tablelandEntitiesCacheService;
+            _memoryCache = memory;
             _httpClient.BaseAddress = new Uri(_chainSettings.TablelandBaseUri);
 
             _tablelandSerializerOptions = new JsonSerializerOptions
@@ -33,7 +34,7 @@ namespace CryptoQuestService.Services.HttpClients
             };
         }
 
-        internal async Task<List<OwnedTable>> GrabCryptoQuestOwnedTables()
+        public async Task<List<OwnedTable>> GrabCryptoQuestOwnedTables()
         {
             var request = await _httpClient.GetAsync($"/chain/{_chainSettings.ChainId}/tables/controller/{_cryptoQuestContractAddress}");
             request.EnsureSuccessStatusCode();
@@ -58,10 +59,9 @@ namespace CryptoQuestService.Services.HttpClients
         /// Returns a list of <see cref="Challenge"/>
         /// </summary>
         /// <returns></returns>
-        internal async Task<List<ChallengesTable>?> GrabCurrentChallenges()
+        public async Task<List<ChallengesTable>?> GrabCurrentChallenges(string challengesTableName)
         {
-            var challengesTable = GrabTableByName(CryptoQuestTables.Challenges);
-            var query = $"select * from {challengesTable.Name}";
+            var query = $"select * from {challengesTableName}";
 
             var content = await GrabDataFromRequestAsync(query);
             return JsonSerializer.Deserialize<List<ChallengesTable>>(content, _tablelandSerializerOptions);
@@ -72,10 +72,9 @@ namespace CryptoQuestService.Services.HttpClients
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        internal async Task<ChallengesTable?> GrabChallengeById(int id)
+        public async Task<ChallengesTable?> GrabChallengeById(int id, string challengesTableName)
         {
-            var challengesTable = GrabTableByName(CryptoQuestTables.Challenges);
-            var query = $"select * from {challengesTable.Name} where id={id}";
+            var query = $"select * from {challengesTableName} where id={id}";
 
             var content = await GrabDataFromRequestAsync(query);
             return JsonSerializer.Deserialize<ChallengesTable>(content, _tablelandSerializerOptions);
@@ -88,8 +87,5 @@ namespace CryptoQuestService.Services.HttpClients
 
             return await httpRequest.Content.ReadAsStringAsync();
         }
-
-        private OwnedTable GrabTableByName(CryptoQuestTables tableName)
-            => _tablelandEntitiesCacheService.GrabCurrentTables().First(f => f.Key == tableName).Value;
     }
 }

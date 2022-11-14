@@ -1,3 +1,4 @@
+using CryptoQuestService.Services.Caches;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoQuestService.Controllers

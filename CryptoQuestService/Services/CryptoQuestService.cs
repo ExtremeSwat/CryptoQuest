@@ -1,4 +1,6 @@
-﻿using CryptoQuestService.Models.Tableland.Entities;
+﻿using CryptoQuestService.Models.Tableland.Chain;
+using CryptoQuestService.Models.Tableland.Entities;
+using CryptoQuestService.Services.Caches;
 using CryptoQuestService.Services.HttpClients;
 
 namespace CryptoQuestService.Services
@@ -6,18 +8,30 @@ namespace CryptoQuestService.Services
     /// <summary>
     /// Main OP service 
     /// </summary>
-    internal class CryptoQuestOperationsService
+    public class CryptoQuestOperationsService
     {
         private readonly TablelandHttpService _tablelandHttpService;
+        private readonly TablelandEntitiesCacheService _tablelandEntitiesCacheService;
 
+        public CryptoQuestOperationsService(TablelandHttpService tablelandHttpService, TablelandEntitiesCacheService tablelandEntitiesCacheService)
+        {
+            _tablelandHttpService = tablelandHttpService;
+            _tablelandEntitiesCacheService = tablelandEntitiesCacheService;
+        }
 
-        public CryptoQuestOperationsService(TablelandHttpService tablelandHttpService)
-            => _tablelandHttpService = tablelandHttpService;
+        public async Task<List<ChallengesTable>> GrabCurrentChallenges()
+            => (await _tablelandHttpService.GrabCurrentChallenges(GrabTableByName(CryptoQuestTables.Challenges).Name) ?? new List<ChallengesTable>());
 
-        internal async Task<List<ChallengesTable>> GrabCurrentChallenges()
-            => (await _tablelandHttpService.GrabCurrentChallenges()) ?? new List<ChallengesTable>();
+        public async Task<ChallengesTable?> GrabChallengeById(int id)
+            => await _tablelandHttpService.GrabChallengeById(id, GrabTableByName(CryptoQuestTables.Challenges).Name);
 
-        internal async Task<ChallengesTable?> GrabChallengeById(int id)
-            => await _tablelandHttpService.GrabChallengeById(id);
+        private OwnedTable GrabTableByName(CryptoQuestTables tableName)
+        {
+            var tables = _tablelandEntitiesCacheService.GrabCurrentTables();
+            if (!tables.Any())
+                throw new Exception("Empty cache !");
+
+            return tables[tableName];
+        }
     }
 }
