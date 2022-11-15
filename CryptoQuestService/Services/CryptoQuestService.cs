@@ -2,9 +2,11 @@
 using CryptoQuestService.Models.Dtos.Input;
 using CryptoQuestService.Models.Tableland.Chain;
 using CryptoQuestService.Models.Tableland.Entities;
+using CryptoQuestService.Models.Tableland.Entities.Enums;
 using CryptoQuestService.Services.Caches;
 using CryptoQuestService.Services.ContractInteraction;
 using CryptoQuestService.Services.HttpClients;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoQuestService.Services
 {
@@ -26,17 +28,34 @@ namespace CryptoQuestService.Services
             _cryptoQuestReduxIntegrationService = cryptoQuestReduxIntegrationService;
         }
 
-        public async Task<List<ChallengesTable>> GrabCurrentChallenges()
-            => (await _tablelandHttpService.GrabCurrentChallenges(GrabTableByName(CryptoQuestTables.Challenges).Name) ?? new List<ChallengesTable>());
+        public async Task<List<ChallengesTable>> GetChallenges(int? challengeId = null)
+        {
+            var tableName = GrabTableByName(CryptoQuestTables.Challenges).Name;
+            var values = new List<(string field, string value, bool inQuotes)>();
+            if (challengeId.HasValue)
+                values.Add(("id", challengeId.Value.ToString(), false));
 
-        public async Task<ChallengesTable?> GrabChallengeById(int id)
-            => await _tablelandHttpService.GrabChallengeById(id, GrabTableByName(CryptoQuestTables.Challenges).Name);
+            var currentChallenges = await _tablelandHttpService.GrabTableContents<ChallengesTable>(tableName, values);
+            return currentChallenges != null && currentChallenges.Any() ? currentChallenges : new List<ChallengesTable>();
+        }
+
+        public async Task<List<ChallengeCheckpointTable>> GetChallengeCheckpoints(int challengeId, int? challengeCheckpointId = default)
+        {
+            var tableName = GrabTableByName(CryptoQuestTables.ChallengeCheckpoints).Name;
+            var values = new List<(string field, string value, bool inQuotes)>(new[] { ("challengeId", challengeId.ToString(), false) });
+            if (challengeCheckpointId.HasValue)
+                values.Add(("id", challengeCheckpointId.Value.ToString(), false));
+
+            return await _tablelandHttpService.GrabTableContents<ChallengeCheckpointTable>(tableName, values) ?? new List<ChallengeCheckpointTable>();
+        }
 
         public async Task<int> CreateChallengeCheckpoint(ChallengeCheckpointInputDto dto)
         {
-            // We're only going to execute the query if the challenge actually exists lol
-            var challenge = await GrabChallengeById(dto.ChallengeId);
-            if (challenge is null)
+            var challenges = await GetChallenges(dto.ChallengeId);
+            if (challenges[0].TypeOfChallengeStatus is ChallengeStatus.Finished or ChallengeStatus.Archived or ChallengeStatus.Published)
+                throw new ArgumentException(nameof(dto.ChallengeId), "Challenge finished or in progress !");
+
+            if (!challenges.Any())
                 throw new ArgumentException(nameof(dto.ChallengeId), "Invalid ChallengeId");
 
             return await _cryptoQuestReduxIntegrationService.CreateChallengeCheckpoint(dto);

@@ -1,4 +1,7 @@
-﻿namespace CryptoQuestService.Models.Tableland.Entities
+﻿using CryptoQuestService.Models.Tableland.Entities.Enums;
+using System.Text.Json.Serialization;
+
+namespace CryptoQuestService.Models.Tableland.Entities
 {
     public class ChallengesTable
     {
@@ -17,5 +20,8 @@
         public int ChallengeStatus { get; set; }
         public string? WinnerAddress { get; set; }
         public string? ImagePreviewURL { get; set; }
+
+        [JsonIgnore]
+        public ChallengeStatus TypeOfChallengeStatus => (ChallengeStatus)ChallengeStatus;
     }
 }

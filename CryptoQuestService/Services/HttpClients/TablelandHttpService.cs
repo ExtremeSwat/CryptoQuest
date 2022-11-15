@@ -1,7 +1,5 @@
 ﻿using CryptoQuestService.Models.Settings;
 using CryptoQuestService.Models.Tableland.Chain;
-using CryptoQuestService.Models.Tableland.Entities;
-using CryptoQuestService.Services.Caches;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
@@ -55,29 +53,27 @@ namespace CryptoQuestService.Services.HttpClients
             return ownedTables;
         }
 
-        /// <summary>
-        /// Returns a list of <see cref="Challenge"/>
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<ChallengesTable>?> GrabCurrentChallenges(string challengesTableName)
+        public async Task<List<T>?> GrabTableContents<T>(string tableName, List<(string field, string value, bool inQuotes)>? values)
         {
-            var query = $"select * from {challengesTableName}";
+            var query = $"select * from {tableName}";
+
+            if (values != null && values.Any())
+            {
+                query += " where ";
+                var firstCondition = false;
+                values.ForEach(v =>
+                {
+                    if (firstCondition)
+                        query += " and ";
+
+                    query += $"{v.field}={(v.inQuotes ? "'" : string.Empty)}{v.value}{(v.inQuotes ? "'" : string.Empty)}";
+
+                    firstCondition = true;
+                });
+            }
 
             var content = await GrabDataFromRequestAsync(query);
-            return JsonSerializer.Deserialize<List<ChallengesTable>>(content, _tablelandSerializerOptions);
-        }
-
-        /// <summary>
-        /// Grabs a single <see cref="Challenge"/> providing an id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<ChallengesTable?> GrabChallengeById(int id, string challengesTableName)
-        {
-            var query = $"select * from {challengesTableName} where id={id}";
-
-            var content = await GrabDataFromRequestAsync(query);
-            return JsonSerializer.Deserialize<ChallengesTable>(content, _tablelandSerializerOptions);
+            return JsonSerializer.Deserialize<List<T>?>(content, _tablelandSerializerOptions);
         }
 
         private async Task<string> GrabDataFromRequestAsync(string query)
