@@ -27,7 +27,7 @@ namespace CryptoQuestService.Controllers
             try
             {
                 var challenges = await _cryptoQuestService.GrabCurrentChallenges();
-                if(!challenges.Any())
+                if (!challenges.Any())
                     return NoContent();
 
                 return Ok(challenges);
@@ -68,15 +68,14 @@ namespace CryptoQuestService.Controllers
 
             try
             {
-                //_cryptoQuestService.GrabCurrentChallenges
+                var challengeCheckpointId = await _cryptoQuestService.CreateChallengeCheckpoint(challengeCheckpointDto);
+                return Ok(challengeCheckpointId);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Failure to grab challenge by id");
                 return BadRequest();
             }
-
-            return Ok();
         }
     }
 }

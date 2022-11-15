@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
 using CryptoQuestService.Contracts.CryptoQuestRedux.Functions;
+using CryptoQuestService.Contracts.CryptoQuestRedux.Functions.Outputs;
 using CryptoQuestService.Models.Dtos.Input;
 using CryptoQuestService.Models.Settings;
 using Microsoft.Extensions.Options;
-using Nethereum.RPC.Eth.DTOs;
+using Nethereum.Contracts.ContractHandlers;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
@@ -13,25 +14,33 @@ namespace CryptoQuestService.Services.ContractInteraction
     {
         private readonly ApiSettings _apiSettings;
         private readonly IMapper _mapper;
+        private readonly ILogger<CryptoQuestReduxIntegrationService> _logger;
 
-        public CryptoQuestReduxIntegrationService(IOptions<ApiSettings> apiSettings, IMapper mapper)
+        public CryptoQuestReduxIntegrationService(IOptions<ApiSettings> apiSettings, IMapper mapper, ILogger<CryptoQuestReduxIntegrationService> logger)
         {
             _apiSettings = apiSettings.Value;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<int> CreateChallengeCheckpoint(ChallengeCheckpointInputDto dto)
         {
             var web3 = GetWeb3Account();
 
-            var chalengeCheckpoint = _mapper.Map<CreateCheckpointFunction>(dto);
-            var createCheckpointFunction = web3.Eth.GetContractTransactionHandler<CreateCheckpointFunction>();
+            try
+            {
+                var contract = GetContractHandler(web3);
+                var createCheckpointFunction = contract.GetFunction<CreateCheckpointFunction>();
+                var chalengeCheckpoint = _mapper.Map<CreateCheckpointFunction>(dto);
+                var data = await contract.QueryDeserializingToObjectAsync<CreateCheckpointFunction, CreateCheckpointOutput>(chalengeCheckpoint);
 
-            var receipt = await createCheckpointFunction.SendRequestAndWaitForReceiptAsync(_apiSettings.ContractSettings.CryptoQuestReduxAddress, chalengeCheckpoint);
-            if (!receipt.Succeeded())
-                throw new Exception("Tran failed");
-
-            throw new Exception();
+                return (int)data.ChallengeCheckpointId;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error when trying to submit a challenge checkpoint");
+                throw;
+            }
         }
 
         private Web3 GetWeb3Account()
@@ -42,5 +51,8 @@ namespace CryptoQuestService.Services.ContractInteraction
             var account = new Account(deployerSettings.PrivateKey, chainSettings.ChainId);
             return new Web3(account, _apiSettings.ChainSettings.ChainUri);
         }
+
+        private ContractHandler GetContractHandler(Web3 web3)
+            => web3.Eth.GetContractHandler(_apiSettings.ContractSettings.CryptoQuestReduxAddress);
     }
 }
