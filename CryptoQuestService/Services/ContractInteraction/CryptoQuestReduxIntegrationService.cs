@@ -5,6 +5,7 @@ using CryptoQuestService.Models.Dtos.Input;
 using CryptoQuestService.Models.Settings;
 using Microsoft.Extensions.Options;
 using Nethereum.Contracts.ContractHandlers;
+using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
@@ -21,6 +22,29 @@ namespace CryptoQuestService.Services.ContractInteraction
             _apiSettings = apiSettings.Value;
             _mapper = mapper;
             _logger = logger;
+        }
+
+        public async Task TriggerChallengeStart(int challengeId)
+        {
+            var web3 = GetWeb3Account();
+
+            try
+            {
+                var contract = GetContractHandler(web3);
+                var func = new TriggerChallengeStartFunction
+                {
+                    ChallengeId = challengeId   
+                };
+
+                var receipt = await contract.SendRequestAndWaitForReceiptAsync(func);
+                if (!receipt.Succeeded())
+                    throw new Exception("Failed to trigger the challenge start !");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error when trying to submit a challenge checkpoint");
+                throw;
+            }
         }
 
         public async Task<int> CreateChallengeCheckpoint(ChallengeCheckpointInputDto dto)

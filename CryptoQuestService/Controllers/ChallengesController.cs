@@ -60,6 +60,24 @@ namespace CryptoQuestService.Controllers
             }
         }
 
+        [HttpPut("{challengeId:int:required}")]
+        public async Task<IActionResult> TriggerChallengeStart(int challengeId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {   
+                await _cryptoQuestService.TriggerChallengeStart(challengeId);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to trigger the challenge !");
+                return BadRequest(e);
+            }
+        }
+
         [HttpGet("{challengeId:int:required}/challenges/checkpoints")]
         public async Task<IActionResult> GetChallengeCheckpoints(int challengeId)
         {

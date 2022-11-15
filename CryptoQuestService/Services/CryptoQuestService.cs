@@ -28,6 +28,12 @@ namespace CryptoQuestService.Services
             _cryptoQuestReduxIntegrationService = cryptoQuestReduxIntegrationService;
         }
 
+        public async Task TriggerChallengeStart(int challengeId)
+        {
+            //ToDo: checks and better error handling
+            await _cryptoQuestReduxIntegrationService.TriggerChallengeStart(challengeId);
+        }
+
         public async Task<List<ChallengesTable>> GetChallenges(int? challengeId = null)
         {
             var tableName = GrabTableByName(CryptoQuestTables.Challenges).Name;
