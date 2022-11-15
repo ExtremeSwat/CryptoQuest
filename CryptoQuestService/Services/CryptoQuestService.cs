@@ -49,6 +49,17 @@ namespace CryptoQuestService.Services
             return await _tablelandHttpService.GrabTableContents<ChallengeCheckpointTable>(tableName, values) ?? new List<ChallengeCheckpointTable>();
         }
 
+        public async Task<List<ChallengeCheckpointTriggerTable>> GetChallengeCheckpointTriggers(int checkpointId, int? checkpointTriggerId = default)
+        {
+            var tableName = GrabTableByName(CryptoQuestTables.ChallengeCheckpointTriggers);
+            var values = new List<(string field, string value, bool inQuotes)>(new[] {("checkpointId", checkpointId.ToString(), false)});
+
+            if (checkpointTriggerId.HasValue)
+                values.Add(("id", checkpointTriggerId.Value.ToString(), false));
+
+            return await _tablelandHttpService.GrabTableContents<ChallengeCheckpointTriggerTable>(tableName.Name, values) ?? new List<ChallengeCheckpointTriggerTable>();
+        }
+
         public async Task<int> CreateChallengeCheckpoint(ChallengeCheckpointInputDto dto)
         {
             var challenges = await GetChallenges(dto.ChallengeId);
@@ -59,6 +70,24 @@ namespace CryptoQuestService.Services
                 throw new ArgumentException(nameof(dto.ChallengeId), "Invalid ChallengeId");
 
             return await _cryptoQuestReduxIntegrationService.CreateChallengeCheckpoint(dto);
+        }
+
+        public async Task<int> CreateChallengeCheckpointTrigger(ChallengeCheckpointTriggerDto dto)
+        {
+            // ToDo: @Ed - this could be refactored and we could do an inner join, no time, gotta go fast ⚡
+            var challenges = await GetChallenges(dto.ChallengeId);
+
+            if (!challenges.Any())
+                throw new ArgumentOutOfRangeException(nameof(dto.ChallengeId), "Invalid checkpoint id");
+
+            if (challenges[0].TypeOfChallengeStatus is ChallengeStatus.Finished or ChallengeStatus.Archived or ChallengeStatus.Published)
+                throw new ArgumentException(nameof(dto.ChallengeId), "Challenge finished or in progress !");
+
+            var challengeCheckpoints = await GetChallengeCheckpoints(dto.ChallengeId, dto.CheckpointId);
+            if (!challengeCheckpoints.Any())
+                throw new ArgumentOutOfRangeException(nameof(dto.CheckpointId), "Checkpoint not found !");
+
+            return await _cryptoQuestReduxIntegrationService.CreateChallengeCheckpointTrigger(dto);
         }
 
         private OwnedTable GrabTableByName(CryptoQuestTables tableName)

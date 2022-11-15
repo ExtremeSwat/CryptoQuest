@@ -43,6 +43,26 @@ namespace CryptoQuestService.Services.ContractInteraction
             }
         }
 
+        public async Task<int> CreateChallengeCheckpointTrigger(ChallengeCheckpointTriggerDto dto)
+        {
+            var web3 = GetWeb3Account();
+
+            try
+            {
+                var contract = GetContractHandler(web3);
+                var createCheckpointFunction = contract.GetFunction<CreateCheckpointTriggerFunction>();
+                var checkpointTrigger = _mapper.Map<CreateCheckpointTriggerFunction>(dto);
+
+                var data = await contract.QueryDeserializingToObjectAsync<CreateCheckpointTriggerFunction, CreateCheckpointTriggerOutput>(checkpointTrigger);
+                return (int)data.ChallengeCheckpointTriggerId;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error when trying to submit a challenge checkpoint trigger");
+                throw;
+            }
+        }
+
         private Web3 GetWeb3Account()
         {
             var deployerSettings = _apiSettings.AccountSettings;

@@ -56,7 +56,7 @@ namespace CryptoQuestService.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Failure to grab challenge by id");
-                return BadRequest();
+                return BadRequest(e);
             }
         }
 
@@ -77,7 +77,7 @@ namespace CryptoQuestService.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Failure to grab challenge checkpoint by id");
-                return BadRequest();
+                return BadRequest(e);
             }
         }
 
@@ -98,7 +98,7 @@ namespace CryptoQuestService.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Failure to grab challenge checkpoint by id");
-                return BadRequest();
+                return BadRequest(e);
             }
         }
 
@@ -116,7 +116,70 @@ namespace CryptoQuestService.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Failure to grab challenge by id");
-                return BadRequest();
+                return BadRequest(e);
+            }
+        }
+
+        [HttpGet("challenges/checkpoints/{checkpointId:int:required}/triggers/{checkpointTriggerId:int:required}")]
+        public async Task<IActionResult> GetChallengeCheckpointTrigger(int checkpointId, int checkpointTriggerId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var challengeCheckpoints = await _cryptoQuestService.GetChallengeCheckpointTriggers(checkpointId, checkpointTriggerId);
+
+                if (!challengeCheckpoints.Any())
+                    return NotFound();
+
+                return Ok(challengeCheckpoints.First());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenge by id");
+                return BadRequest(e);
+            }
+        }
+
+
+        [HttpGet("challenges/checkpoints/{checkpointId:int:required}/triggers")]
+        public async Task<IActionResult> GetChallengeCheckpointTriggers(int checkpointId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var challengeCheckpoints = await _cryptoQuestService.GetChallengeCheckpointTriggers(checkpointId);
+
+                if (!challengeCheckpoints.Any())
+                    return NoContent();
+
+                return Ok(challengeCheckpoints);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenge by id");
+                return BadRequest(e);
+            }
+        }
+
+        [HttpPost("challenges/checkpoints/{checkpointId:int:required}/triggers")]
+        public async Task<IActionResult> CreateChallengeCheckpointTriggers([FromBody, Required] ChallengeCheckpointTriggerDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var challengeCheckpointTriggerId = await _cryptoQuestService.CreateChallengeCheckpointTrigger(dto);
+                return CreatedAtRoute(nameof(GetChallengeCheckpointTrigger), new { checkpointId = dto.CheckpointId, checkpointTriggerId = challengeCheckpointTriggerId }, challengeCheckpointTriggerId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failure to grab challenge by id");
+                return BadRequest(e);
             }
         }
     }
